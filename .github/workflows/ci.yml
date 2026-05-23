@@ -33,8 +33,7 @@ jobs:
           LLM_PROVIDER: "openai"
         run: |
           python -m pytest bot/tests/unit/ -v --tb=short \
-            --junitxml=reports/junit-unit.xml \
-            -p no:hypothesis
+            --junitxml=reports/junit-unit.xml
 
       - name: 📊 Upload test report
         if: always()
