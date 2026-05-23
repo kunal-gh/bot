@@ -1,9 +1,8 @@
 "use client";
 
-// src/components/ChatInput.tsx
 import { useState, useRef, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
-import { Send, Mic, Sparkles } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -48,7 +47,7 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 select-none">
       {/* Quick Action Pills */}
       {!disabled && (
         <div className="flex gap-2 flex-wrap">
@@ -57,7 +56,7 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
               key={action.label}
               id={`quick-${action.label.toLowerCase()}`}
               onClick={() => { setValue(action.query); textareaRef.current?.focus(); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium text-slate-400 hover:text-white border border-white/8 hover:border-violet-500/40 hover:bg-violet-500/10 transition-all duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold text-zinc-400 hover:text-white bg-zinc-900/40 border border-white/5 hover:border-white/10 transition-all duration-200"
             >
               <span>{action.icon}</span>
               <span>{action.label}</span>
@@ -68,9 +67,9 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
 
       {/* Input Box */}
       <div className={cn(
-        "relative flex items-end gap-2 rounded-2xl p-2 transition-all duration-200",
-        "glass-strong border",
-        value.length > 0 ? "border-violet-500/40 glow-accent" : "border-white/10",
+        "relative flex items-end gap-2 rounded-xl p-2 transition-all duration-200",
+        "bg-zinc-900/60 border",
+        value.length > 0 ? "border-white/20" : "border-white/5",
         disabled && "opacity-50"
       )}>
         <textarea
@@ -82,21 +81,21 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
           placeholder={disabled ? "Upload a workbook to start querying…" : "Ask anything about your data…"}
           disabled={disabled || isLoading}
           rows={1}
-          className="flex-1 resize-none bg-transparent text-sm text-white placeholder-slate-600 outline-none px-3 py-2 leading-relaxed"
+          className="flex-1 resize-none bg-transparent text-sm text-zinc-100 placeholder-zinc-600 outline-none px-3 py-2 leading-relaxed font-sans"
           style={{ maxHeight: "120px" }}
         />
 
         {/* Send Button */}
         <motion.button
           id="send-btn"
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: 0.95 }}
           onClick={handleSend}
           disabled={!value.trim() || isLoading || disabled}
           className={cn(
-            "flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200",
+            "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer",
             value.trim() && !disabled
-              ? "bg-gradient-to-br from-violet-600 to-cyan-500 text-white glow-accent"
-              : "bg-white/5 text-slate-700"
+              ? "bg-zinc-100 hover:bg-white text-zinc-950 font-semibold"
+              : "bg-zinc-900 border border-white/5 text-zinc-700"
           )}
         >
           {isLoading ? (
@@ -104,15 +103,15 @@ export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             >
-              <Sparkles size={16} />
+              <Sparkles size={14} />
             </motion.div>
           ) : (
-            <Send size={15} />
+            <Send size={13} />
           )}
         </motion.button>
       </div>
 
-      <p className="text-[10px] text-slate-700 text-center">
+      <p className="text-[9px] font-semibold text-zinc-600 text-center tracking-wide uppercase">
         Shift+Enter for new line · Enter to send
       </p>
     </div>

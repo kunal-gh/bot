@@ -1,11 +1,10 @@
 "use client";
 
-// src/components/ChatMessage.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bot, User, ChevronDown, ChevronRight, Code2,
-  Table2, Info, Wrench, Sparkles, BarChart3, Brain,
+  Table2, Info, Wrench, Brain,
 } from "lucide-react";
 import { ChatResponse } from "@/lib/api";
 import { Badge } from "@/components/ui/Badge";
@@ -23,33 +22,19 @@ export interface Message {
   timestamp: Date;
 }
 
-const INTENT_META: Record<string, { label: string; color: "purple" | "cyan" | "green" | "amber" | "red" }> = {
-  forecast:         { label: "Forecast",   color: "cyan" },
-  anomaly_explain:  { label: "Anomaly",    color: "amber" },
-  anomaly_detection:{ label: "Anomaly",    color: "amber" },
-  cluster:          { label: "Cluster",    color: "green" },
-  top_n:            { label: "Top-N",      color: "purple" },
-  trend:            { label: "Trend",      color: "green" },
-  aggregation:      { label: "Aggregate",  color: "purple" },
-  comparison:       { label: "Compare",    color: "amber" },
-  lookup:           { label: "Lookup",     color: "cyan" },
-  join_based:       { label: "Join",       color: "purple" },
-  derived_metric:   { label: "Metric",     color: "green" },
-};
-
 function MLInsightBanner({ intent, data }: { intent: string; data: Record<string, unknown>[] }) {
   if (intent === "anomaly_detection" || intent === "anomaly_explain") {
     const anomalies = data.filter(r => r._is_anomaly);
     if (anomalies.length === 0) return null;
     return (
-      <div className="flex items-start gap-2.5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
-        <span className="text-amber-400 text-base flex-shrink-0">⚠️</span>
+      <div className="flex items-start gap-3 rounded-xl border border-rose-500/10 bg-rose-950/5 px-4 py-3 select-none">
+        <span className="text-rose-400 text-sm flex-shrink-0">⚠️</span>
         <div>
-          <p className="text-sm font-semibold text-amber-300">
-            {anomalies.length} anomal{anomalies.length > 1 ? "ies" : "y"} detected
+          <p className="text-xs font-semibold text-rose-300">
+            {anomalies.length} anomaly detected
           </p>
-          <p className="text-xs text-amber-400/70 mt-0.5">
-            Highlighted rows contain outliers identified by Isolation Forest (5% contamination rate).
+          <p className="text-[11px] text-rose-400/70 mt-0.5 leading-relaxed">
+            Outliers identified by Isolation Forest model (5% contamination rate threshold).
           </p>
         </div>
       </div>
@@ -58,14 +43,14 @@ function MLInsightBanner({ intent, data }: { intent: string; data: Record<string
   if (intent === "forecast") {
     const forecasted = data.filter(r => r._is_forecast);
     return (
-      <div className="flex items-start gap-2.5 rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3">
-        <span className="text-cyan-400 text-base flex-shrink-0">🔮</span>
+      <div className="flex items-start gap-3 rounded-xl border border-zinc-500/10 bg-zinc-950/30 px-4 py-3 select-none">
+        <span className="text-zinc-400 text-sm flex-shrink-0">🔮</span>
         <div>
-          <p className="text-sm font-semibold text-cyan-300">
-            {forecasted.length}-period forecast generated
+          <p className="text-xs font-semibold text-zinc-300">
+            {forecasted.length}-Period Forecast Generated
           </p>
-          <p className="text-xs text-cyan-400/70 mt-0.5">
-            Using Simple Exponential Smoothing. Forecast values shown in cyan.
+          <p className="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+            Computed using Simple Exponential Smoothing model.
           </p>
         </div>
       </div>
@@ -74,14 +59,14 @@ function MLInsightBanner({ intent, data }: { intent: string; data: Record<string
   if (intent === "cluster") {
     const clusters = new Set(data.map(r => r._cluster_id));
     return (
-      <div className="flex items-start gap-2.5 rounded-xl border border-green-400/20 bg-green-400/5 px-4 py-3">
-        <span className="text-green-400 text-base flex-shrink-0">🧩</span>
+      <div className="flex items-start gap-3 rounded-xl border border-emerald-500/10 bg-emerald-950/5 px-4 py-3 select-none">
+        <span className="text-emerald-400 text-sm flex-shrink-0">🧩</span>
         <div>
-          <p className="text-sm font-semibold text-green-300">
-            {clusters.size} segments identified
+          <p className="text-xs font-semibold text-emerald-300">
+            {clusters.size} dynamic segments identified
           </p>
-          <p className="text-xs text-green-400/70 mt-0.5">
-            K-Means clustering on numeric features. Segments color-coded in chart.
+          <p className="text-[11px] text-emerald-400/70 mt-0.5 leading-relaxed">
+            Multi-dimensional K-Means clustering run on active numeric variables.
           </p>
         </div>
       </div>
@@ -99,14 +84,14 @@ interface ExpandableSectionProps {
 function ExpandableSection({ title, children, defaultOpen = false }: ExpandableSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border border-white/5 rounded-xl overflow-hidden">
+    <div className="border border-white/5 rounded-xl overflow-hidden bg-zinc-950/10">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-white/[0.02] transition-colors select-none"
       >
         {open
-          ? <ChevronDown size={13} className="text-slate-600" />
-          : <ChevronRight size={13} className="text-slate-600" />
+          ? <ChevronDown size={12} className="text-zinc-500" />
+          : <ChevronRight size={12} className="text-zinc-500" />
         }
         {title}
       </button>
@@ -124,43 +109,43 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        "flex gap-3",
+        "flex gap-4 w-full",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
       {/* Avatar */}
       <div className={cn(
-        "flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center",
+        "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center select-none",
         isUser
-          ? "bg-gradient-to-br from-violet-500 to-cyan-500"
-          : "bg-gradient-to-br from-slate-700 to-slate-800 border border-white/10"
+          ? "bg-zinc-100 text-zinc-950 font-bold"
+          : "bg-zinc-900 border border-white/10 text-white"
       )}>
         {isUser
-          ? <User size={15} className="text-white" />
-          : <Bot size={15} className="text-violet-300" />
+          ? <User size={14} />
+          : <Bot size={14} className="text-zinc-300" />
         }
       </div>
 
       {/* Content */}
       <div className={cn(
-        "flex flex-col gap-2 max-w-[85%]",
+        "flex flex-col gap-2 max-w-[82%]",
         isUser ? "items-end" : "items-start"
       )}>
         {/* Main bubble */}
         <div className={cn(
-          "rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          "rounded-xl px-4 py-3 text-sm leading-relaxed",
           isUser
-            ? "bg-gradient-to-br from-violet-600/40 to-cyan-600/20 border border-violet-500/30 text-white"
-            : "glass border border-white/5 text-slate-200"
+            ? "bg-zinc-900 border border-white/10 text-zinc-100"
+            : "bg-zinc-900/30 border border-white/5 text-zinc-300"
         )}>
           {message.isLoading ? (
             <LoadingDots />
           ) : (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap font-sans">{message.content}</p>
           )}
         </div>
 
@@ -168,7 +153,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {!isUser && message.data && !message.isLoading && (
           <div className="w-full space-y-2.5">
             {/* Badges */}
-            <div className="flex flex-wrap gap-1.5 px-1">
+            <div className="flex flex-wrap gap-1.5 px-1 select-none">
               {message.data.query_complexity && (
                 <Badge variant="purple">
                   <Brain size={9} />
@@ -189,7 +174,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {/* ML Insight Banner */}
             {message.data.result_preview && message.data.result_preview.length > 0 && (
               <MLInsightBanner
-                intent={/* Extract intent from query_complexity */
+                intent={
                   message.data.query_complexity?.toLowerCase().includes("forecast") ? "forecast"
                   : message.data.query_complexity?.toLowerCase().includes("anomaly") ? "anomaly_detection"
                   : message.data.query_complexity?.toLowerCase().includes("cluster") ? "cluster"
@@ -201,7 +186,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
             {/* Chart */}
             {message.data.result_preview && message.data.result_preview.length > 0 && (
-              <div className="glass rounded-2xl p-4 border border-white/5">
+              <div className="bg-zinc-900/20 border border-white/5 rounded-xl p-4">
                 <ResultChart
                   data={message.data.result_preview}
                   intent={
@@ -219,15 +204,15 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {message.data.result_preview && message.data.result_preview.length > 0 && (
               <ExpandableSection
                 title={
-                  <span className="flex items-center gap-2 text-xs text-slate-500">
-                    <Table2 size={13} />
-                    Data Table
-                    <span className="ml-auto text-slate-700 text-[10px]">
+                  <span className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <Table2 size={12} />
+                    Data View
+                    <span className="ml-auto text-zinc-600 font-mono text-[9px] lowercase">
                       {message.data.result_preview.length} rows
                     </span>
                   </span>
                 }
-                defaultOpen={message.data.result_preview.length <= 10}
+                defaultOpen={message.data.result_preview.length <= 8}
               >
                 <DataTable data={message.data.result_preview} />
               </ExpandableSection>
@@ -237,13 +222,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {message.data.sql && (
               <ExpandableSection
                 title={
-                  <span className="flex items-center gap-2 text-xs text-slate-500">
-                    <Code2 size={13} />
-                    SQL Query
+                  <span className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <Code2 size={12} />
+                    SQL Pipeline
                   </span>
                 }
               >
-                <pre className="bg-black/40 rounded-xl p-3 text-xs text-green-300 overflow-x-auto font-mono leading-relaxed border border-white/5">
+                <pre className="bg-zinc-950/60 rounded-xl p-3.5 text-xs text-zinc-400 overflow-x-auto font-mono leading-relaxed border border-white/5 select-text">
                   {message.data.sql}
                 </pre>
               </ExpandableSection>
@@ -253,20 +238,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {message.data.explanation && (
               <ExpandableSection
                 title={
-                  <span className="flex items-center gap-2 text-xs text-slate-500">
-                    <Info size={13} />
+                  <span className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <Info size={12} />
                     Explanation
                   </span>
                 }
               >
-                <p className="text-xs text-slate-400 leading-relaxed">{message.data.explanation}</p>
+                <p className="text-xs text-zinc-400 leading-relaxed font-sans select-text">{message.data.explanation}</p>
               </ExpandableSection>
             )}
           </div>
         )}
 
         {/* Timestamp */}
-        <span className="text-[9px] text-slate-700 px-1">
+        <span className="text-[9px] font-semibold text-zinc-600 px-1 select-none uppercase tracking-wider">
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
