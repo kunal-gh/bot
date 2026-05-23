@@ -87,6 +87,12 @@ export function Sidebar({
           </span>
         </button>
 
+        {/* Dynamic LLM context limit disclaimer */}
+        <div className="mt-2.5 p-3 rounded-xl bg-zinc-950/40 border border-white/5 text-[10px] text-zinc-500 leading-normal font-sans">
+          <p className="font-bold text-zinc-400 uppercase tracking-wider mb-1">Scale Constraints</p>
+          <span>Max recommended dimensions: <strong>5,000 rows × 15 columns</strong> per table (max <strong>5 sheets</strong>). Enforces optimal P50 response latency and respects the Groq inference context window boundaries.</span>
+        </div>
+
         {schema && (
           <button
             id="reload-btn"
