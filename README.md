@@ -1,17 +1,19 @@
 <div align="center">
 
-# 🤖 BOT — AI Analytics Agent
+# 🤖 B.O.T. — Brains Over Tables
 
 ### *An Agentic Machine Learning Platform for Natural Language Business Intelligence*
 
+![BOT Banner](assets/bot_banner.png)
+
 [![CI/CD](https://github.com/kunal-gh/bot/actions/workflows/ci.yml/badge.svg)](https://github.com/kunal-gh/bot/actions/workflows/ci.yml)
-[![Railway](https://img.shields.io/badge/Deployed-Railway-8B5CF6?logo=railway)](https://alluring-grace-production-c441.up.railway.app)
+[![Railway](https://img.shields.io/badge/Deployed-Railway-8B5CF6?logo=railway)](https://bot-web-production-1328.up.railway.app)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**[🚀 Live Demo](https://alluring-grace-production-c441.up.railway.app) · [📖 API Docs](https://alluring-grace-production-c441.up.railway.app/docs) · [🐛 Issues](https://github.com/kunal-gh/bot/issues)**
+**[🚀 Live Demo](https://bot-web-production-1328.up.railway.app) · [📖 API Docs](https://bot-api-production-7ddf.up.railway.app/docs) · [🐛 Issues](https://github.com/kunal-gh/bot/issues)**
 
 ---
 
