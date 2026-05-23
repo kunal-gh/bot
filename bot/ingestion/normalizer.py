@@ -129,10 +129,11 @@ def infer_and_cast_types(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.columns:
         series = df[col]
 
-        # Skip columns that are already typed (non-object)
-        if series.dtype != object:
+        # Skip columns that are already typed as numeric/datetime/boolean
+        import pandas.api.types as pat
+        if not (pat.is_object_dtype(series) or pat.is_string_dtype(series)):
             # Still attempt int-downcast on float columns with no decimal part
-            if pd.api.types.is_float_dtype(series):
+            if pat.is_float_dtype(series):
                 non_null = series.dropna()
                 if len(non_null) > 0 and (non_null == non_null.astype("int64", errors="ignore")).all():
                     try:
