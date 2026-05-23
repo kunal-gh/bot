@@ -62,61 +62,7 @@
 
 ## 🏗️ Solution Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    BOT — System Architecture                     │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │                     PRESENTATION LAYER                    │  │
-│  │  ┌─────────────────────────────────────────────────────┐  │  │
-│  │  │  Next.js 16 (Standalone) + TypeScript               │  │  │
-│  │  │  Framer Motion + Recharts                           │  │  │
-│  │  │  Sleek Zinc Monochromatic Theme (Outfit Typography) │  │  │
-│  │  └─────────────────────────────────────────────────────┘  │  │
-│  └─────────────────────────────┬─────────────────────────────┘  │
-│                                │ HTTP/REST (Runtime Router Proxy)│
-│  ┌─────────────────────────────▼─────────────────────────────┐  │
-│  │                     API LAYER (FastAPI)                   │  │
-│  │  POST /chat  GET /schema  POST /upload  GET /health       │  │
-│  └─────────────────────────────┬─────────────────────────────┘  │
-│                                │                                │
-│  ┌─────────────────────────────▼─────────────────────────────┐  │
-│  │                      AGENTIC PIPELINE                     │  │
-│  │                                                           │  │
-│  │  ┌──────────┐     ┌───────────┐     ┌─────────────┐       │  │
-│  │  │ PLANNER  │ ──> │ COMPILER  │ ──> │  VALIDATOR  │       │  │
-│  │  │  (LLM)   │     │ (Python)  │     │  (sqlglot)  │       │  │
-│  │  │ JSON Plan│     │ Pure SQL  │     │  AST Safe   │       │  │
-│  │  └──────────┘     └─────┬─────┘     └─────────────┘       │  │
-│  │                         │                                 │  │
-│  │  ┌──────────────────────▼──────────────────────────────┐  │  │
-│  │  │                      EXECUTOR                       │  │  │
-│  │  │           DuckDB (In-Memory, 30s timeout)           │  │  │
-│  │  └──────────────────────┬──────────────────────────────┘  │  │
-│  │                         │                                 │  │
-│  │  ┌──────────────────────▼──────────────────────────────┐  │  │
-│  │  │             ML INTELLIGENCE LAYER                   │  │  │
-│  │  │  ┌──────────────┐ ┌──────────────┐ ┌─────────────┐  │  │  │
-│  │  │  │  FORECASTER  │ │   ANOMALY    │ │  CLUSTERER  │  │  │  │
-│  │  │  │  Exp.Smooth  │ │  Isolation   │ │   K-Means   │  │  │  │
-│  │  │  └──────────────┘ └──────────────┘ └─────────────┘  │  │  │
-│  │  └──────────────────────┬──────────────────────────────┘  │  │
-│  │                         │                                 │  │
-│  │  ┌──────────────────────▼──────────────────────────────┐  │  │
-│  │  │             FORMATTER (LLM Response)                │  │  │
-│  │  │     Natural language answer + chart + explanation   │  │  │
-│  │  └─────────────────────────────────────────────────────┘  │  │
-│  └─────────────────────────────┬─────────────────────────────┘  │
-│                                │                                │
-│  ┌─────────────────────────────▼─────────────────────────────┐  │
-│  │                         DATA LAYER                        │  │
-│  │  ┌──────────────┐     ┌──────────────┐     ┌────────────┐ │  │
-│  │  │ Excel Loader │     │SchemaRegistry│     │ FK Links   │ │  │
-│  │  │ (openpyxl)   │     │ (Inference)  │     │ Inference  │ │  │
-│  │  └──────────────┘     └──────────────┘     └────────────┘ │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+![Solution Architecture Diagram](assets/system_architecture.png)
 
 ---
 
@@ -433,32 +379,7 @@ Uploads `.xlsx`/`.xls` spreadsheets. Instantly casts columns and mounts sheets i
 
 To guarantee robust protection against malicious vectors or data destruction, BOT implements a **4-Layer Read-Only Sandbox**:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│ Layer 1: Prompt System Enforcer                            │
-│   └── Explicit prompt constraint forbids data alterations. │
-└─────────────────────────────┬──────────────────────────────┘
-                              │
-┌─────────────────────────────▼────────────────────────────┐
-│ Layer 2: sqlglot AST Parser Sandbox                      │
-│   └── Parses output into Abstract Syntax Trees.           │
-│   └── Rejects INSERT, UPDATE, DELETE, DROP, ALTER,       │
-│       CREATE, TRUNCATE, MERGE, and EXECUTE.              │
-└─────────────────────────────┬──────────────────────────────┘
-                              │
-┌─────────────────────────────▼────────────────────────────┐
-│ Layer 3: Registry Structural Constraint                  │
-│   └── Evaluates query AST table & column identifiers     │
-│       against active SchemaRegistry metadata.             │
-└─────────────────────────────┬──────────────────────────────┘
-                              │
-┌─────────────────────────────▼────────────────────────────┐
-│ Layer 4: DuckDB Thread Isolation                         │
-│   └── Memory constraints (:memory: engine only).         │
-│   └── Absolute 30-second thread execution timeout.        │
-│   └── Hard-enforced 500-row output limits.               │
-└──────────────────────────────────────────────────────────┘
-```
+![4-Layer Security Sandbox Diagram](assets/security_sandbox.png)
 
 ---
 
