@@ -32,8 +32,7 @@ RUN mkdir -p logs
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONPATH=/app
 
-# Railway provides PORT dynamically at runtime
-# Railway's external healthcheck will monitor the container
+# Explicitly expose 8000 for Railway's edge router
+EXPOSE 8000
 
-
-CMD uvicorn bot.api.main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn bot.api.main:app --host 0.0.0.0 --port 8000
