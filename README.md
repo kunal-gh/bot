@@ -398,12 +398,10 @@ python -m pytest bot/tests/ --cov=bot --cov-report=html
 
 ### Coverage Matrices
 
-- **Unit - Normalizer:** Column normalizations and column type conversions (22 test points).
-- **Unit - Glossary:** Inherent business metrics validations (AOV, profit margin) (24 test points).
-- **Unit - Security AST:** Strict blocks on injection attempts (20 test points).
-- **Unit - Mathematical Compiler:** Fuzz testing and statistical ML checks (30+ test points).
-- **Integration - Pipeline:** End-to-end multi-step validations (43 test points).
-- **Statistical Fuzzing:** Implements property-based constraints through `Hypothesis` fuzzer.
+- **Total Verification Suite:** **131 fully automated test cases** (100% pass rate).
+- **Unit Tests (88 test cases):** Full functional coverage across compiler dialect translations, normalizer casting limits, query planning schemas, and `sqlglot` read-only AST parser sanitization.
+- **Integration Tests (43 test cases):** Comprehensive multi-step pipeline evaluations running queries end-to-end on local DuckDB instances.
+- **Property-Based Fuzzing:** Generative fuzz validation powered by the `Hypothesis` framework.
 
 ---
 
