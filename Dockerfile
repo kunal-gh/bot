@@ -32,10 +32,7 @@ RUN mkdir -p logs
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONPATH=/app
 
-# Railway sets PORT dynamically
-ENV PORT=8000
-
-EXPOSE $PORT
+# Railway provides PORT dynamically at runtime
 # Railway's external healthcheck will monitor the container
 
 
