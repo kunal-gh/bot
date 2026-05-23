@@ -149,7 +149,8 @@ class TestInferAndCastTypes:
     def test_varchar_fallback(self):
         df = pd.DataFrame({"product_name": ["Widget A", "Gadget B", "Doohickey C"]})
         result = infer_and_cast_types(df)
-        assert result["product_name"].dtype == object or str(result["product_name"].dtype) == "object"
+        dtype_str = str(result["product_name"].dtype)
+        assert result["product_name"].dtype == object or dtype_str in ("object", "string")
 
     def test_empty_df_unchanged(self):
         df = pd.DataFrame({"col": pd.Series([], dtype=object)})

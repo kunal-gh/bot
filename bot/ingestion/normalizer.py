@@ -183,7 +183,7 @@ def _try_parse_datetime(series: pd.Series) -> pd.Series | None:
     if len(non_null) == 0:
         return None
     try:
-        parsed = pd.to_datetime(series, infer_datetime_format=True, errors="coerce")
+        parsed = pd.to_datetime(series, errors="coerce")
         # Accept if >70% of non-null values parsed successfully
         success_rate = parsed.notna().sum() / max(len(non_null), 1)
         if success_rate >= 0.7:
