@@ -36,9 +36,7 @@ ENV PYTHONPATH=/app
 ENV PORT=8000
 
 EXPOSE $PORT
+# Railway's external healthcheck will monitor the container
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD python -c "import urllib.request, os; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')" || exit 1
 
 CMD uvicorn bot.api.main:app --host 0.0.0.0 --port $PORT

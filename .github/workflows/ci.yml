@@ -63,7 +63,7 @@ jobs:
 
       - name: 📦 Install frontend deps
         working-directory: web
-        run: npm ci
+        run: npm install
 
       - name: 🔨 Build Next.js app
         working-directory: web
