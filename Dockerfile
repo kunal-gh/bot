@@ -33,6 +33,5 @@ ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONPATH=/app
 
 # Explicitly expose 8000 for Railway's edge router
-EXPOSE 8000
-
-CMD uvicorn bot.api.main:app --host 0.0.0.0 --port 8000
+# Start the server using explicit shell array format to guarantee $PORT expansion
+CMD ["/bin/sh", "-c", "uvicorn bot.api.main:app --host 0.0.0.0 --port $PORT"]
