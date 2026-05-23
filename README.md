@@ -11,7 +11,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**[🚀 Live Demo](https://bot-web-production-1328.up.railway.app) · [📖 API Docs](https://bot-api-production-7ddf.up.railway.app/docs) · [🐛 Issues](https://github.com/kunal-gh/bot/issues)**
+**[🚀 Live Demo](https://bot-web-production-1328.up.railway.app) · [📖 API Docs](https://bot-api-production-7ddf.up.railway.app/docs) · [📄 Full Docs](./DOCUMENTATION.md) · [🐛 Issues](https://github.com/kunal-gh/bot/issues)**
 
 ---
 
@@ -38,6 +38,7 @@
 11. [Security Architecture & Sandboxing](#-security-architecture)
 12. [Testing Framework](#-testing)
 13. [Roadmap](#-roadmap)
+14. [📄 Full Technical Documentation](./DOCUMENTATION.md)
 
 ---
 
