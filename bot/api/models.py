@@ -102,6 +102,9 @@ class IntentType(str, Enum):
     JOIN_BASED = "join_based"
     DERIVED_METRIC = "derived_metric"
     ANOMALY_DETECTION = "anomaly_detection"
+    FORECAST = "forecast"
+    ANOMALY_EXPLAIN = "anomaly_explain"
+    CLUSTER = "cluster"
 
 
 class JoinPath(BaseModel):

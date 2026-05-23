@@ -1,0 +1,235 @@
+# BOT — AI Analytics Agent: Technical Documentation
+
+## Module Reference
+
+---
+
+### `bot/api/` — REST API Layer
+
+#### `main.py` — Application Entry Point
+- FastAPI app with lifespan context manager
+- Validates config on startup (fails fast if API key missing)
+- Opens DuckDB connection and optionally pre-loads default workbook
+- Configures CORS middleware for Streamlit/Next.js frontends
+
+#### `routes.py` — Pipeline Controller
+Five endpoints: `POST /upload`, `POST /reload-data`, `GET /schema`, `GET /health`, `POST /chat`
+
+The `/chat` endpoint runs the full 9-step pipeline:
+1. Guard (workbook must be loaded)
+2. Build schema context + glossary context
+3. LLM → QueryPlan (structured JSON)
+4. Compile plan → DuckDB SQL
+5. Validate SQL (read-only + schema refs)
+6. Execute in DuckDB (30s timeout, 500-row cap)
+7. Repair loop if execution fails
+8. **ML post-processing** (Forecast / Anomaly / Cluster by intent)
+9. Format result → ChatResponse
+
+#### `models.py` — 20 Pydantic v2 Models
+
+| Model | Fields | Purpose |
+|-------|--------|---------|
+| `ColumnRole` | enum | PRIMARY_KEY, FOREIGN_KEY, MEASURE, DIMENSION, DATE, UNKNOWN |
+| `ColumnMetadata` | name, sql_type, role, samples, nullable, is_unique, null_pct | Schema column info |
+| `TableMetadata` | table_name, columns, row_count, pk_candidates, date_cols, metric_cols | Table schema |
+| `RelationshipMetadata` | left/right table+column, confidence, type | FK relationships |
+| `SchemaRegistry` | tables dict, relationships list | Full schema store |
+| `IntentType` | enum | lookup, aggregation, comparison, trend, top_n, join_based, derived_metric, anomaly_detection, **forecast**, **anomaly_explain**, **cluster** |
+| `QueryPlan` | intent, tables, joins, filters, metrics, group_by, limit, time_column | LLM plan output |
+| `ExecutionResult` | success, dataframe, row_count, time_ms, error, was_repaired | Query result |
+| `ChatResponse` | answer, sql, tables_used, explanation, result_preview, complexity, was_repaired | API response |
+
+---
+
+### `bot/ml/` — Machine Learning Modules (NEW in v2.0)
+
+#### `forecasting.py`
+```python
+forecast_time_series(df: pd.DataFrame, periods: int = 30) -> pd.DataFrame
+```
+- Finds date columns via type or name heuristics
+- Resamples to daily frequency (forward-fills gaps)
+- Fits Simple Exponential Smoothing via MLE
+- Returns combined historical + forecast DataFrame with `_is_forecast` column
+
+#### `anomaly.py`
+```python
+detect_anomalies(df: pd.DataFrame) -> pd.DataFrame
+```
+- Selects all numeric columns as features
+- Fills NaN with 0 for model input
+- Fits Isolation Forest (contamination=0.05, random_state=42)
+- Appends `_is_anomaly: bool` column (-1 prediction → True)
+
+#### `clustering.py`
+```python
+cluster_data(df: pd.DataFrame, n_clusters: int = 3) -> pd.DataFrame
+```
+- StandardScaler normalization (zero mean, unit variance)
+- KMeans with k-means++ initialization (random_state=42)
+- Appends `_cluster_id: int` column (0..k-1)
+
+---
+
+### `bot/planner/` — LLM Planning Layer
+
+#### `planner.py` — LLMClient + Prompt Engineering
+- `LLMClient`: thin OpenAI-compatible wrapper; supports Groq, OpenRouter, Ollama via `base_url`
+- Temperature fixed at 0.0 for deterministic planning
+- System prompt: 9 rules covering JSON-only output, schema adherence, glossary use, join logic, ML intent classification
+- `_extract_json()`: robust JSON extraction with markdown fence stripping and regex fallback
+
+#### `validator.py` — Plan Validation
+- Validates LLM output against `QueryPlan` Pydantic schema
+- Raises `PlanningError` with clear message on invalid plan
+
+---
+
+### `bot/compiler/compiler.py` — SQL Generation
+
+Deterministic Python code that converts a `QueryPlan` JSON into valid DuckDB SQL:
+
+- **Standard path**: `BUILD SELECT → FROM → JOIN → WHERE → GROUP BY → ORDER BY → LIMIT`
+- **CTE path** (for comparison/trend/anomaly): builds `WITH current_period AS (...), previous_period AS (...)` CTEs
+- Glossary expansion: `"revenue"` → `SUM(quantity * price)`
+- Time phrase resolution: `"last 30 days"` → `{col} >= CURRENT_DATE - INTERVAL 30 DAY`
+- Short alias generation: `order_line_items` → `oli`
+- Value quoting: numerics unquoted, strings single-quoted
+
+---
+
+### `bot/validator/validator.py` — Security Layer
+
+AST-level SQL security enforcement using sqlglot:
+
+```python
+# Blocked node types:
+BLOCKED = {Insert, Update, Delete, Drop, Create, Alter, Truncate, Merge}
+
+# Also validates:
+# - All table names exist in SchemaRegistry
+# - All qualified column references (table.column) resolve correctly
+# - CTE-defined names are not false-flagged as missing
+```
+
+---
+
+### `bot/schema/` — Schema Intelligence
+
+#### `registry.py` — Auto Schema Discovery
+1. `SHOW TABLES` → get all table names
+2. `DESCRIBE table` → columns + types
+3. Sample 5 distinct values per column
+4. Compute uniqueness and null percentage
+5. Classify column role via regex patterns:
+   - DATE: name contains date/time/at/created + TIMESTAMP/DATE types
+   - PRIMARY_KEY: `*_id` pattern + unique values
+   - FOREIGN_KEY: `*_id` pattern + non-unique
+   - MEASURE: quantity/price/revenue/amount + numeric type
+   - DIMENSION: VARCHAR/TEXT
+
+#### `relationships.py` — FK Inference (3 Strategies)
+1. **Name match**: `table_a.order_id` == `table_b.order_id` AND unique in B → confidence 1.0
+2. **Prefix match**: column `order_id` → look for `orders` or `order` table → confidence 1.0
+3. **Value overlap**: Jaccard similarity of sampled values > 0.5 → confidence = ratio
+
+---
+
+### `bot/glossary/glossary.py` — Business Semantics
+
+Pre-built lookup table for 16 business terms + 12 time phrases:
+
+| Term | SQL Expression |
+|------|----------------|
+| `revenue` | `SUM(quantity * price)` |
+| `aov` | `SUM(quantity * price) / NULLIF(COUNT(DISTINCT order_id), 0)` |
+| `profit` | `SUM(quantity * (price - cost))` |
+| `units sold` | `SUM(quantity)` |
+| `last 30 days` | `{col} >= CURRENT_DATE - INTERVAL 30 DAY` |
+| `this month` | `{col} >= date_trunc('month', CURRENT_DATE)` |
+
+Fuzzy matching for patterns like "last N days/weeks/months" via regex.
+
+---
+
+### `bot/repair/repair.py` — Self-Healing Loop
+
+When execution fails:
+1. LLM called with: original SQL + error message + schema + original plan JSON
+2. Prompt instructs: output ONLY the corrected SQL, fix only what is broken
+3. Repaired SQL re-validated through AST check
+4. Executed once more (no infinite loop)
+5. `ExecutionResult.was_repaired = True` is set
+
+---
+
+### `bot/ingestion/` — Data Layer
+
+#### `loader.py` — Excel Ingestion
+- `load_workbook()`: reads all sheets via `pd.read_excel(sheet_name=None)`
+- Drops fully-empty rows/columns
+- Normalises sheet names and column names to snake_case
+- Infers and casts types
+- `store_to_duckdb()`: registers temp view → `CREATE OR REPLACE TABLE`
+- `refresh_dataset()`: drops all tables → reload → returns `IngestionResult`
+
+#### `normalizer.py` — Data Cleaning
+- `normalize_sheet_name()`: "Order Line Items" → "order_line_items"
+- `normalize_column_names()`: regex-based snake_case with special char handling
+- `infer_and_cast_types()`: auto-detects dates, numerics, booleans from object columns
+
+---
+
+### `bot/db.py` — Database Layer
+
+Thread-safe DuckDB singleton:
+```python
+class _DuckDBManager:
+    _conn: Optional[duckdb.DuckDBPyConnection]
+    _lock: threading.Lock
+    
+    # Sets 4 threads on connect
+    # get_connection() → creates if None, returns shared conn
+    # is_connected() → executes "SELECT 1" to verify
+```
+
+---
+
+## Web Frontend Architecture
+
+### Component Tree
+
+```
+page.tsx (state management, API calls)
+├── AnimatedOrbs (background effects)
+├── Sidebar
+│   ├── Upload button (POST /upload)
+│   ├── Schema browser (expandable per table)
+│   ├── Relationship list
+│   ├── Sample queries (dynamic)
+│   └── Health status indicator
+└── Chat area
+    ├── WelcomeHero (when no messages)
+    ├── ChatMessage[] (animated, per message)
+    │   ├── User bubble (right-aligned, gradient)
+    │   ├── Bot bubble (left-aligned, glassmorphism)
+    │   ├── MLInsightBanner (anomaly/forecast/cluster)
+    │   ├── ResultChart (auto-select by intent)
+    │   ├── DataTable (paginated, ML-highlighted)
+    │   ├── ExpandableSection → SQL
+    │   └── ExpandableSection → Explanation
+    └── ChatInput
+        ├── Quick-action pills (Forecast/Anomaly/Cluster/Top10)
+        └── Auto-growing textarea + animated send button
+```
+
+### Design System
+
+CSS variables defined in `globals.css`:
+- `--bg-primary`: `#080b14` (deep space black)
+- `--accent`: `#7c3aed` (violet)
+- `--accent-2`: `#06b6d4` (cyan)
+- Glassmorphism: `backdrop-filter: blur(20px)` + `rgba` backgrounds
+- Glow: `box-shadow` with colour-matched RGBA
+- Animations: `fadeInUp`, `pulse-glow`, `typing`, `shimmer`, `float`

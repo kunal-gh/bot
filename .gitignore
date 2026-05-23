@@ -1,5 +1,6 @@
 # Environments
 .env
+.env.local
 .venv
 env/
 venv/
@@ -12,19 +13,26 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg-info/
+dist/
+build/
 
-# Pytest
+# Pytest / Hypothesis
 .pytest_cache/
 .coverage
 htmlcov/
+.hypothesis/
 
-# DuckDB / Data
+# DuckDB / Data files
 *.duckdb
 *.db
-# Keep the sample dataset for interviewers
+data/*.xlsx
+data/*.xls
+data/*.csv
+# Keep sample dataset for demo
 !data/sample_dataset.xlsx
 
-# OS generated files
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -33,9 +41,27 @@ htmlcov/
 ehthumbs.db
 Thumbs.db
 
-# Project specific logs
+# Logs
 logs/
 *.log
 
-# Streamlit
+# Streamlit (legacy, keep file but not config)
 .streamlit/
+
+# Kiro IDE
+.kiro/
+
+# Next.js
+web/.next/
+web/node_modules/
+web/.env.local
+web/out/
+web/.vercel
+
+# Node
+node_modules/
+
+# Temp files
+*.tmp
+*.temp
+all_code_dump.txt

@@ -1,33 +1,44 @@
-# Use official Python runtime as a parent image
-FROM python:3.11-slim
+# ─── Stage 1: Python deps (cached layer) ───────────────────────────────────
+FROM python:3.11-slim AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies (required for some Python packages)
-RUN apt-get update && apt-get install -y \
+# Install system build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first to leverage Docker cache
+# Install Python dependencies first (layer-cached)
 COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# ─── Stage 2: Runtime ──────────────────────────────────────────────────────
+FROM python:3.11-slim AS runtime
 
-# Copy the rest of the application
-COPY . .
+WORKDIR /app
 
-# Create directories for data and logs
-RUN mkdir -p data logs
+# Copy installed packages from builder
+COPY --from=builder /root/.local /root/.local
 
-# Default port for Cloud Run
+# Copy application code
+COPY bot/ ./bot/
+COPY data/ ./data/
+
+# Create required dirs
+RUN mkdir -p logs
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONPATH=/app
+
+# Railway sets PORT dynamically
 ENV PORT=8000
 
-# Expose ports (8000 for FastAPI, 8501 for Streamlit)
-EXPOSE 8000 8501
+EXPOSE $PORT
 
-# The CMD will be overridden by docker-compose or the deployment platform
-# depending on whether we want to run the API or the UI
-CMD ["uvicorn", "bot.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:$PORT/health || exit 1
+
+CMD uvicorn bot.api.main:app --host 0.0.0.0 --port $PORT

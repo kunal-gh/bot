@@ -84,6 +84,7 @@ CRITICAL RULES:
 6. ADVANCED JOINS: If a table lacks a date column (e.g. line_items), you MUST join it to its parent table (e.g. orders) to filter by date.
 7. DOMAIN HEURISTICS: For "revenue", "sales", or "orders", always prefer `orders` and `order_line_items` tables over `checkouts` or `carts`.
 8. When calculating a "drop" or "increase" over time, use the `trend` or `comparison` intent.
+9. ML TASKS: For predicting future data, use the `forecast` intent. For explaining or diagnosing anomalies automatically, use the `anomaly_explain` intent. For segmenting/clustering, use the `cluster` intent.
 """
 
 _PLANNER_PROMPT_TEMPLATE = """SCHEMA:
@@ -94,9 +95,9 @@ BUSINESS GLOSSARY:
 
 USER QUERY: {user_query}
 
-Produce a JSON query plan with EXACTLY this structure:
+ Produce a JSON query plan with EXACTLY this structure:
 {{
-  "intent": "<one of: lookup|aggregation|comparison|trend|top_n|join_based|derived_metric|anomaly_detection>",
+  "intent": "<one of: lookup|aggregation|comparison|trend|top_n|join_based|derived_metric|anomaly_detection|forecast|anomaly_explain|cluster>",
   "tables_needed": ["<table_name>", ...],
   "primary_table": "<main FROM table>",
   "join_paths": [

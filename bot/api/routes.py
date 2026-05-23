@@ -23,6 +23,7 @@ from bot.api.models import (
     HealthResponse,
     SchemaResponse,
     UploadResponse,
+    IntentType,
 )
 from bot.compiler.compiler import compile_plan_to_sql
 from bot.db import get_connection, is_connected
@@ -37,6 +38,9 @@ from bot.schema.context_builder import build_schema_context_for_llm
 from bot.schema.registry import build_schema_registry
 from bot.schema.relationships import detect_relationships
 from bot.validator.validator import ReadOnlyViolationError, validate_sql
+from bot.ml.forecasting import forecast_time_series
+from bot.ml.anomaly import detect_anomalies
+from bot.ml.clustering import cluster_data
 
 router = APIRouter()
 
@@ -287,10 +291,26 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 query_complexity=_complexity(plan),
                 was_repaired=True,
             )
-        return format_answer(result.dataframe, query, plan, fixed_sql, llm, was_repaired=True)
+        
+    # --- Agentic ML Loop ---
+    # Apply ML processing based on intent
+    if result.success and result.dataframe is not None and not result.dataframe.empty:
+        try:
+            if plan.intent == IntentType.FORECAST:
+                logger.info("Applying time-series forecasting to result...")
+                result.dataframe = forecast_time_series(result.dataframe, periods=30)
+            elif plan.intent in (IntentType.ANOMALY_DETECTION, IntentType.ANOMALY_EXPLAIN):
+                logger.info("Applying anomaly detection to result...")
+                result.dataframe = detect_anomalies(result.dataframe)
+                # Drill-down logic: If anomalies found, we could auto-query, but for now we just flag them.
+            elif plan.intent == IntentType.CLUSTER:
+                logger.info("Applying clustering to result...")
+                result.dataframe = cluster_data(result.dataframe)
+        except Exception as ml_err:
+            logger.error(f"ML processing failed: {ml_err}")
 
     # Step 8: Format successful result
-    return format_answer(result.dataframe, query, plan, sql, llm)
+    return format_answer(result.dataframe, query, plan, sql, llm, was_repaired=result.was_repaired)
 
 
 def _complexity(plan) -> str:

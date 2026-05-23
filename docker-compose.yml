@@ -10,10 +10,24 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
       - DUCKDB_PATH=:memory:
     volumes:
       - ./data:/app/data
 
+  bot-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: bot-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://bot-api:8000
+    depends_on:
+      - bot-api
+
+  # Legacy Streamlit UI (kept for backward compat)
   bot-ui:
     build: .
     container_name: bot-ui
