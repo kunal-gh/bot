@@ -32,13 +32,12 @@
 5. [Technology Stack](#-technology-stack)
 6. [Performance & Benchmarks](#-performance--benchmarks)
 7. [Repository Structure](#-project-structure)
-8. [Quick Start & Local Dev](#-quick-start)
-9. [Deployment (Railway)](#-deployment-railway)
-10. [API Reference](#-api-reference)
-11. [ML Feature Guide](#-ml-feature-guide)
-12. [Security Architecture & Sandboxing](#-security-architecture)
-13. [Testing Framework](#-testing)
-14. [Roadmap](#-roadmap)
+8. [Deployment (Railway)](#-deployment-railway)
+9. [API Reference](#-api-reference)
+10. [ML Feature Guide](#-ml-feature-guide)
+11. [Security Architecture & Sandboxing](#-security-architecture)
+12. [Testing Framework](#-testing)
+13. [Roadmap](#-roadmap)
 
 ---
 
@@ -310,47 +309,7 @@ Bot (Repository Root)
 
 ---
 
-## 🚀 Quick Start & Local Dev
 
-### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- OpenAI API Key or Groq API Key
-
-### Local Dev Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/kunal-gh/bot.git
-   cd bot
-   ```
-
-2. **Configure Environment:**
-   Create a `.env` in `backend/`:
-   ```env
-   OPENAI_API_KEY=sk-yourkey...
-   
-   # Optional: For Groq
-   LLM_BASE_URL=https://api.groq.com/openai/v1
-   LLM_MODEL=llama-3.1-8b-instant
-   ```
-
-3. **Start Backend (FastAPI):**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   uvicorn bot.api.main:app --reload --port 8000
-   ```
-
-4. **Start Frontend (Next.js):**
-   ```bash
-   cd ../frontend
-   npm install
-   npm run dev
-   ```
-   Open `http://localhost:3000` to interact with the application.
-
----
 
 ## 🚂 Deployment (Railway)
 
